@@ -12,7 +12,9 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://therapy-frontend.onrender.com'
+}));
 app.use(express.json());
 
 // Haal alle activiteiten op
