@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -5,21 +6,17 @@ const { Pool } = require('pg');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// ✅ CORS eerst – laat alleen je frontend toe
 app.use(cors({
   origin: 'https://therapy-frontend.onrender.com'
 }));
 
-// ✅ JSON parsing
 app.use(express.json());
 
-// ✅ PostgreSQL pool (Render gebruikt DATABASE_URL als env variable)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// ✅ Route: alle data ophalen
 app.get('/data', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM activities');
@@ -34,7 +31,6 @@ app.get('/data', async (req, res) => {
   }
 });
 
-// ✅ Route: like toevoegen
 app.post('/like/:activityId', async (req, res) => {
   const id = req.params.activityId;
   try {
@@ -46,7 +42,6 @@ app.post('/like/:activityId', async (req, res) => {
   }
 });
 
-// ✅ Route: deelnemer toevoegen
 app.post('/signup/:activityId', async (req, res) => {
   const id = req.params.activityId;
   const name = req.body.name;
@@ -59,7 +54,6 @@ app.post('/signup/:activityId', async (req, res) => {
   }
 });
 
-// ✅ Server starten
 app.listen(port, () => {
   console.log(`Server draait op poort ${port}`);
 });
