@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -11,44 +10,53 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// PostgreSQL connectie
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-// GET /data: haal alle activiteiten op met likes
+// Endpoint om alle activiteiten op te halen
 app.get("/data", async (req, res) => {
   try {
-    const result = await pool.query("SELECT activity_id, activity_name, likes FROM activities ORDER BY likes DESC");
+    const result = await pool.query(
+      "SELECT activity_id, activity_name, likes FROM activities ORDER BY likes DESC"
+    );
     res.json(result.rows);
   } catch (error) {
-    console.error("DB error:", error);
+    console.error("Database error bij ophalen data:", error);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-// POST /like/:activityId: verhoog aantal likes
+// Endpoint om likes te verhogen
 app.post("/like/:activityId", async (req, res) => {
-  const activityId = req.params.activityId;
+  const { activityId } = req.params;
   try {
-    await pool.query("UPDATE activities SET likes = likes + 1 WHERE activity_id = $1", [activityId]);
+    await pool.query(
+      "UPDATE activities SET likes = likes + 1 WHERE activity_id = $1",
+      [activityId]
+    );
     res.json({ success: true });
   } catch (error) {
-    console.error("Like error:", error);
+    console.error("Database error bij like:", error);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-// POST /join/:activityId: voeg deelnemer toe
+// Endpoint om deelnemers toe te voegen
 app.post("/join/:activityId", async (req, res) => {
-  const activityId = req.params.activityId;
-  const name = req.body.name;
+  const { activityId } = req.params;
+  const { name } = req.body;
   try {
-    await pool.query("INSERT INTO participants (activity_id, name) VALUES ($1, $2)", [activityId, name]);
+    await pool.query(
+      "INSERT INTO participants (activity_id, name) VALUES ($1, $2)",
+      [activityId, name]
+    );
     res.json({ success: true });
   } catch (error) {
-    console.error("Join error:", error);
+    console.error("Database error bij join:", error);
     res.status(500).json({ error: "Database error" });
   }
 });
