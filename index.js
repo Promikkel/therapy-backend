@@ -1,56 +1,55 @@
 
-const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
+const express = require("express");
+const cors = require("cors");
+const { Pool } = require("pg");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
 app.use(cors({
-  origin: 'https://therapy-frontend.onrender.com'
+  origin: "https://therapy-frontend.onrender.com"
 }));
-
 app.use(express.json());
 
+// PostgreSQL connectie
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-app.get('/data', async (req, res) => {
+// GET /data: haal alle activiteiten op met likes
+app.get("/data", async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM activities');
-    res.json(result.rows.map(row => ({
-      activityId: row.activity_id,
-      likes: row.likes,
-      participants: row.participants
-    })));
-  } catch (err) {
-    console.error('Fout bij ophalen data:', err);
-    res.status(500).send('Fout bij ophalen data');
+    const result = await pool.query("SELECT activity_id, activity_name, likes FROM activities ORDER BY likes DESC");
+    res.json(result.rows);
+  } catch (error) {
+    console.error("DB error:", error);
+    res.status(500).json({ error: "Database error" });
   }
 });
 
-app.post('/like/:activityId', async (req, res) => {
-  const id = req.params.activityId;
+// POST /like/:activityId: verhoog aantal likes
+app.post("/like/:activityId", async (req, res) => {
+  const activityId = req.params.activityId;
   try {
-    await pool.query('UPDATE activities SET likes = likes + 1 WHERE activity_id = $1', [id]);
-    res.sendStatus(200);
-  } catch (err) {
-    console.error('Fout bij liken:', err);
-    res.status(500).send('Fout bij liken');
+    await pool.query("UPDATE activities SET likes = likes + 1 WHERE activity_id = $1", [activityId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Like error:", error);
+    res.status(500).json({ error: "Database error" });
   }
 });
 
-app.post('/signup/:activityId', async (req, res) => {
-  const id = req.params.activityId;
+// POST /join/:activityId: voeg deelnemer toe
+app.post("/join/:activityId", async (req, res) => {
+  const activityId = req.params.activityId;
   const name = req.body.name;
   try {
-    await pool.query('UPDATE activities SET participants = array_append(participants, $1) WHERE activity_id = $2', [name, id]);
-    res.sendStatus(200);
-  } catch (err) {
-    console.error('Fout bij aanmelden:', err);
-    res.status(500).send('Fout bij aanmelden');
+    await pool.query("INSERT INTO participants (activity_id, name) VALUES ($1, $2)", [activityId, name]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Join error:", error);
+    res.status(500).json({ error: "Database error" });
   }
 });
 
