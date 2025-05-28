@@ -61,6 +61,21 @@ app.post("/join/:activityId", async (req, res) => {
   }
 });
 
+// Endpoint om deelnemers op te halen per activiteit
+app.get("/participants/:activityId", async (req, res) => {
+  const { activityId } = req.params;
+  try {
+    const result = await pool.query(
+      "SELECT name FROM participants WHERE activity_id = $1",
+      [activityId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Database error bij ophalen deelnemers:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server draait op poort ${port}`);
 });
