@@ -79,3 +79,15 @@ app.get("/participants/:activityId", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server draait op poort ${port}`);
 });
+
+
+// Endpoint voor ophalen van likes per activiteit
+app.get("/likes", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT activity_id, likes FROM activities");
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Fout bij ophalen likes:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
